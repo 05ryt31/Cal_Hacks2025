@@ -1,0 +1,33 @@
+terraform {
+  required_version = ">= 1.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  {% if remote_backend %}
+  backend "s3" {
+    bucket         = "{{ state_bucket }}"
+    key            = "{{ project_name }}/terraform.tfstate"
+    region         = "{{ region }}"
+    encrypt        = true
+    dynamodb_table = "{{ state_lock_table }}"
+  }
+  {% endif %}
+}
+
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = {
+      Project     = "{{ project_name }}"
+      ManagedBy   = "InfraBlocks"
+      Environment = var.environment
+      CreatedAt   = "{{ timestamp }}"
+    }
+  }
+}
